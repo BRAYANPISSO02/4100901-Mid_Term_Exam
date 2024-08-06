@@ -44,6 +44,11 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+//Creamos cada una de las funciones globales que vamos a utilizar
+uint32_t left_toggles = 0;
+uint32_t right_toggles = 0;
+uint32_t state = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,6 +62,14 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//Utilizamos la función callback para las interrupciones de los botones
+//No tiene dato de salida esta función y la entrada viene llamada ya desde la mismo función pero "_wek"
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == S1_Pin){
+		left_toggles = 1;
+ }
+}
 /* USER CODE END 0 */
 
 /**
