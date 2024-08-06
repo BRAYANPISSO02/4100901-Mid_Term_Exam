@@ -49,6 +49,8 @@ uint32_t left_toggles = 0;
 uint32_t right_toggles = 0;
 uint32_t left_last_press_tick = 0;
 uint32_t state = 0;
+uint32_t state2 = 0;
+
 
 /* USER CODE END PV */
 
@@ -98,11 +100,20 @@ void turn_signal_left(void)
 			turn_toggle_tick = HAL_GetTick() + 500;
 			HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);
 			left_toggles--;
-		} else if(stop_toggles <= 0) {
-			HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
-			left_toggles = 0;
-			state = 0;
+		}
 	}
+}
+
+//Creamos una nueva función que cumple las misma condiciones que la anterior pero ahora para el led derecho
+void turn_signal_right(void)
+{
+	static uint32_t turn_toggle_tick = 0;
+	if (turn_toggle_tick < HAL_GetTick()) {
+		if (right_toggles > 0 && state2 != 1) {
+			turn_toggle_tick = HAL_GetTick() + 500;
+			HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
+			right_toggles--;
+		}
 	}
 }
 /* USER CODE END 0 */
@@ -145,6 +156,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+	  //Colocamos a ejecutar las funciones de forma constante, para que sean validadas
+	  	  turn_signal_left();
+	  	  turn_signal_right();
 
     /* USER CODE BEGIN 3 */
 
