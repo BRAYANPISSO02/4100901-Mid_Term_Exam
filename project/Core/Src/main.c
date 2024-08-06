@@ -48,6 +48,7 @@ UART_HandleTypeDef huart2;
 uint32_t left_toggles = 0;
 uint32_t right_toggles = 0;
 uint32_t left_last_press_tick = 0;
+uint32_t right_last_press_tick = 0;
 uint32_t state = 0;
 uint32_t state2 = 0;
 
@@ -86,15 +87,35 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				left_toggles = 6;
 			}
 		left_last_press_tick = HAL_GetTick();
+
+		//Creamos un condicional similar al anterior pero ahora para el led derecho
+	} 	else if (GPIO_Pin == S2_Pin && HAL_GetTick() > (right_last_press_tick + 200)) {
+	 	 	 if(left_toggles > 0){
+	 	 		 state2 = 1;
+	 	 }
+	 	 	 right_toggles = 0;
+	 	 	 left_toggles = 0;
+	 	 	 HAL_GPIO_WritePin(D1_GPIO_Port, D1_Pin, 1);
+	 	 	 HAL_UART_Transmit(&huart2, "S2\r\n", 4, 10);
+		if (HAL_GetTick() < (right_last_press_tick + 500)) {
+			right_toggles = 0xFFFFFF; // a long time toggling (infinite)
+		} else {
+			right_toggles = 6;
+				}
+		right_last_press_tick = HAL_GetTick();
+
 	}
- }
+
+
+}
 
 
 //Creamos una función que nos permita activar el led D1 (izquierdo) tres veces en el momento que se presione
 //el botón S1
 void turn_signal_left(void)
 {
-	static uint32_t turn_toggle_tick = 0;
+	static uint32_t turn_toggle_tick = 0; // Esta variable sirve para validar el tiempo que lleve transcurrido desde el ingreso
+	// a la función anterior
 	if (turn_toggle_tick < HAL_GetTick()) {
 		if (left_toggles > 0 && state != 1) {
 			turn_toggle_tick = HAL_GetTick() + 500;
