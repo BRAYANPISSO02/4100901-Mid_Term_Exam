@@ -47,6 +47,7 @@ UART_HandleTypeDef huart2;
 //Creamos cada una de las funciones globales que vamos a utilizar
 uint32_t left_toggles = 0;
 uint32_t right_toggles = 0;
+uint32_t left_last_press_tick = 0;
 uint32_t state = 0;
 
 /* USER CODE END PV */
@@ -66,9 +67,43 @@ static void MX_USART2_UART_Init(void);
 //No tiene dato de salida esta función y la entrada viene llamada ya desde la mismo función pero "_wek"
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == S1_Pin){
-		left_toggles = 1;
+	if (GPIO_Pin == S1_Pin && HAL_GetTick() > (left_last_press_tick + 200)) { // Colocamos un condicional que se active cuando se presione S1
+		//Nos permite activar el led cuando lo necesitemos. Igualmente agregamos un condicional para disminuir el error "left_last_press_tick"
+			if(right_toggles > 0){
+				state = 1; //Añadimos este estado para cuando esté activo el led opuesto
+			}
+			//Seguido vamos a limpiar todas la variables para volver a ejecutar el proceso que necesitamos
+			left_toggles = 0;
+			right_toggles = 0;
+			HAL_GPIO_WritePin(D2_GPIO_Port, D2_Pin, 1);
+			HAL_UART_Transmit(&huart2, "S1\r\n", 4, 10);
+			if (HAL_GetTick() < (left_last_press_tick + 500)) {//Agregamos un condicional para cuando se presione antes de
+				// 500 ms, que sea indefinido el parpadeo
+				left_toggles = 0xFFFFFF;
+			} else {
+				left_toggles = 6;
+			}
+		left_last_press_tick = HAL_GetTick();
+	}
  }
+
+
+//Creamos una función que nos permita activar el led D1 (izquierdo) tres veces en el momento que se presione
+//el botón S1
+void turn_signal_left(void)
+{
+	static uint32_t turn_toggle_tick = 0;
+	if (turn_toggle_tick < HAL_GetTick()) {
+		if (left_toggles > 0 && state != 1) {
+			turn_toggle_tick = HAL_GetTick() + 500;
+			HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);
+			left_toggles--;
+		} else if(stop_toggles <= 0) {
+			HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
+			left_toggles = 0;
+			state = 0;
+	}
+	}
 }
 /* USER CODE END 0 */
 
@@ -112,6 +147,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }
@@ -210,7 +246,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, D1_Pin|D2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, D1_Pin|D2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : S1_Pin S2_Pin */
   GPIO_InitStruct.Pin = S1_Pin|S2_Pin;
