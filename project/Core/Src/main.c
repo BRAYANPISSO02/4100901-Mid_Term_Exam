@@ -109,7 +109,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-
+//
 //Creamos una función que nos permita activar el led D1 (izquierdo) tres veces en el momento que se presione
 //el botón S1
 void turn_signal_left(void)
