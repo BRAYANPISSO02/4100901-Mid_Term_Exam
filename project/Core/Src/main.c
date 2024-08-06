@@ -118,24 +118,29 @@ void turn_signal_left(void)
 	// a la función anterior
 	if (turn_toggle_tick < HAL_GetTick()) {
 		if (left_toggles > 0 && state != 1) {
-			turn_toggle_tick = HAL_GetTick() + 500;
+			turn_toggle_tick = HAL_GetTick() + 250;
 			HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);
 			left_toggles--;
 		}
+	} else{
+		state = 0;
 	}
 }
-
 //Creamos una nueva función que cumple las misma condiciones que la anterior pero ahora para el led derecho
+
 void turn_signal_right(void)
 {
 	static uint32_t turn_toggle_tick = 0;
 	if (turn_toggle_tick < HAL_GetTick()) {
 		if (right_toggles > 0 && state2 != 1) {
-			turn_toggle_tick = HAL_GetTick() + 500;
+			turn_toggle_tick = HAL_GetTick() + 250;
 			HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
 			right_toggles--;
 		}
+	} else{
+		state2 = 0;
 	}
+
 }
 /* USER CODE END 0 */
 
